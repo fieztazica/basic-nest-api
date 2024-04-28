@@ -1,0 +1,78 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Product {
+    id            Int                 @id @default(autoincrement()) @map("product_id")
+    uuid          String              @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    createdAt     DateTime            @default(now())
+    updatedAt     DateTime            @updatedAt
+    name          String              @unique @db.VarChar(255)
+    description   String?             @db.VarChar(255)
+    price         Decimal             @db.Decimal(10, 2)
+    categories    ProductToCategory[]
+    createdBy     User?               @relation(fields: [createdUserId], references: [id], onDelete: Cascade)
+    createdUserId Int?                @map("created_user_id")
+
+    @@map("products")
+}
+
+model Category {
+    id          Int                 @id @default(autoincrement()) @map("category_id")
+    createdAt   DateTime            @default(now())
+    updatedAt   DateTime            @updatedAt
+    name        String              @unique @db.VarChar(255)
+    description String?             @db.VarChar(255)
+    products    ProductToCategory[]
+    uuid        String              @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+    @@map("categories")
+}
+
+model ProductToCategory {
+    productId  Int      @map("product_id")
+    categoryId Int      @map("category_id")
+    product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+    category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+    assignedAt DateTime @default(now())
+
+    @@id([productId, categoryId])
+    @@map("product_to_category")
+}
+
+model User {
+    id          Int         @id @default(autoincrement()) @map("user_id")
+    username    String      @unique @db.VarChar(25)
+    email       String?     @unique @db.VarChar(255)
+    password    String      @db.VarChar(100)
+    firstName   String?     @map("first_name") @db.VarChar(255)
+    lastName    String?     @map("last_name") @db.VarChar(500)
+    gender      EnumGender? @default(UNDEFINED)
+    phoneNumber String?     @unique @db.VarChar(20)
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    uuid        String      @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    fullName    String?     @db.VarChar(1000)
+    roles       EnumRole[]  @default([USER])
+    products    Product[]
+
+    @@map("users")
+}
+
+enum EnumGender {
+    MALE
+    FEMALE
+    UNDEFINED
+}
+
+enum EnumRole {
+    ADMIN
+    MANAGER
+    USER
+    SHOP
+}
