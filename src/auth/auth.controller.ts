@@ -53,10 +53,7 @@ export class AuthController {
       throw new UnauthorizedException('Incorrect username or password');
     }
 
-    return this.authService.signIn(
-      user,
-      signInData.rememberMe ? 60 * 60 * 24 : undefined,
-    );
+    return this.authService.signIn(user, signInData.rememberMe);
   }
 
   @UseGuards(LocalAuthGuard)

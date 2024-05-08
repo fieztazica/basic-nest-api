@@ -18,7 +18,7 @@ type DefaultPayload = {
 };
 
 const defaultRefreshTokenOption: JwtSignOptions = {
-  expiresIn: 60 * 60 * 24 * 30,
+  expiresIn: jwtConstants.defaultRefreshTokenExpiresIn,
 };
 
 @Injectable()
@@ -41,7 +41,7 @@ export class AuthService {
 
   async signIn(
     user: Omit<User, 'password'>,
-    expiresIn?: number,
+    rememberMe: boolean = false,
   ): Promise<TokenResponseDto> {
     const payload = {
       username: user.username,
@@ -50,7 +50,9 @@ export class AuthService {
     };
     const options: JwtSignOptions = {
       // 1 hour by default
-      expiresIn: expiresIn || 60 * 60,
+      expiresIn: rememberMe
+        ? jwtConstants.defaultExpiresIn
+        : jwtConstants.defaultRememberMeExpiresIn,
     };
     return {
       access_token: this.jwtService.sign(payload, options),
@@ -102,7 +104,7 @@ export class AuthService {
     };
     // Generate a new access token
     const new_access_token = this.jwtService.sign(payload);
-    const expires_in = 60 * 60; // 1 hour in seconds
+    const expires_in = jwtConstants.defaultExpiresIn;
 
     return { access_token: new_access_token, refresh_token, expires_in };
   }
